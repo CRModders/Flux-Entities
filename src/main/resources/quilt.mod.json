@@ -12,7 +12,7 @@
       "name": "${mod_name}",
       "description": "${mod_desc}",
       "contributors": {
-        "IDK": "Owner"
+        "Nanobass": "Author"
       },
 
       "contact": {
@@ -22,7 +22,7 @@
     },
 
     "entrypoints": {
-      "main": "org.example.mod.ExampleMod"
+      "main": "dev.crmodders.flux.entities.FluxEntitiesMod"
     },
 
     "depends": [
@@ -37,5 +37,5 @@
     ]
   },
 
-  "mixin": "example.mixins.json"
+  "mixin": "flux.entities.mixins.json"
 }
