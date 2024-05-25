@@ -1,4 +1,7 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
+    id "maven-publish"
     id "application"
     id "java-library"
     id "com.github.johnrengelman.shadow" version "8.1.1"
@@ -214,3 +217,87 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
+
+tasks.register("buildJars") {
+    group = "compile"
+
+    dependsOn("buildFatJar")
+    dependsOn("buildSlimJar")
+    dependsOn("buildSourcesJar")
+}
+
+tasks.register("buildFatJar", ShadowJar) {
+    group = "compile"
+
+    configurations = [project.configurations.shadowMe]
+
+    dependsOn("compileJava")
+    dependsOn("processResources")
+
+    from(processResources.destinationDir)
+    from(sourceSets.main.java.classesDirectory)
+
+    archiveFileName = "${id}-${version}-fat.jar"
+}
+
+tasks.register("buildSlimJar", Jar) {
+    group = "compile"
+
+    dependsOn("compileJava")
+    dependsOn("processResources")
+
+    from(sourceSets.main.java.classesDirectory)
+
+    archiveFileName = "${id}-${version}-slim.jar"
+}
+
+tasks.register("buildSourcesJar", Jar) {
+    group = "compile"
+
+    from(sourceSets.main.allSource)
+    archiveFileName = "${id}-${version}-sources.jar"
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "crmReleases"
+            url = "https://maven.crmodders.dev/releases"
+            credentials{
+                username = System.getenv("CRMReleasesUsername")
+                password = System.getenv("CRMReleasesPassword")
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+
+        maven {
+            name = "crmSnapshots"
+            url = "https://maven.crmodders.dev/snapshots"
+            credentials{
+                username = System.getenv("CRMSnapshotsUsername")
+                password = System.getenv("CRMSnapshotsPassword")
+            }
+            authentication {
+                basic(BasicAuthentication)
+            }
+        }
+    }
+    assemble.dependsOn buildSourcesJar, buildFatJar, buildSlimJar
+    publications {
+        maven(MavenPublication) {
+            groupId = group
+            if (System.getenv("COMMIT_ID") != null) {
+                artifactId = System.getenv("COMMIT_ID")
+            } else {
+                artifactId = id
+            }
+
+            artifact buildFatJar
+            artifact source: buildSlimJar, classifier: 'slim', extension: 'jar'
+            artifact source: buildSourcesJar, classifier: 'source', extension: 'jar'
+        }
+    }
+}
+
