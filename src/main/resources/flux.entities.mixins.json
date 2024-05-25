@@ -1,15 +1,16 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "dev.crmodders.flux.entities.mixins",
-  "compatibilityLevel": "JAVA_17",
-  "mixins": [
-    "ChunkMixin",
-    "ZoneMixin"
-  ],
-  "client": [],
-  "server": [],
-  "injectors": {
-    "defaultRequire": 1
+    "required": true,
+    "minVersion": "0.8",
+    "package": "dev.crmodders.flux.entities.mixins",
+    "compatibilityLevel": "JAVA_17",
+    "mixins": [
+        "ChunkMixin",
+        "InGameMixin",
+        "ZoneMixin"
+    ],
+    "client": [],
+    "server": [],
+    "injectors": {
+        "defaultRequire": 1
   }
 }

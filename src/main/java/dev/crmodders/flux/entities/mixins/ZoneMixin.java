@@ -1,5 +1,7 @@
 package dev.crmodders.flux.entities.mixins;
 
+import com.badlogic.gdx.graphics.Camera;
+import dev.crmodders.flux.entities.interfaces.IRenderable;
 import dev.crmodders.flux.entities.interfaces.ITickable;
 import finalforeach.cosmicreach.util.Point3DMap;
 import finalforeach.cosmicreach.world.Chunk;
@@ -12,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Zone.class)
-public class ZoneMixin {
+public class ZoneMixin implements IRenderable {
 
     @Shadow private @Final Point3DMap<Chunk> chunks;
 
@@ -25,4 +27,12 @@ public class ZoneMixin {
         });
     }
 
+    @Override
+    public void onRender(Camera camera, float dt) {
+        chunks.forEach(chunk -> {
+            if(chunk instanceof IRenderable renderable) {
+                renderable.onRender(camera, dt);
+            }
+        });
+    }
 }

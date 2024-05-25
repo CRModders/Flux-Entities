@@ -1,17 +1,25 @@
 package dev.crmodders.flux.entities;
 
+import dev.crmodders.flux.entities.interfaces.IRenderable;
 import dev.crmodders.flux.entities.interfaces.ITickable;
 import finalforeach.cosmicreach.blockentities.BlockEntity;
 import finalforeach.cosmicreach.blocks.BlockPosition;
 import finalforeach.cosmicreach.world.Chunk;
 import finalforeach.cosmicreach.world.Zone;
 
-public class FunctionalBlock extends BlockEntity implements ITickable {
+public class TickableBlockEntity extends BlockEntity implements ITickable {
 
     public BlockPosition position;
 
-    public void initialize(Chunk chunk) {
-        position = new BlockPosition(chunk, getGlobalX() - chunk.blockX, getGlobalY() - chunk.blockY, getGlobalZ() - chunk.blockZ);
+    protected TickableBlockEntity() {
+    }
+
+    public TickableBlockEntity(String id, int globalX, int globalY, int globalZ) {
+        super(id, globalX, globalY, globalZ);
+    }
+
+    public void initialize(Chunk chunk, int localX, int localY, int localZ) {
+        position = new BlockPosition(chunk, localX, localY, localZ);
     }
 
     @Override
@@ -33,4 +41,5 @@ public class FunctionalBlock extends BlockEntity implements ITickable {
     public void onRemove() {
         super.onRemove();
     }
+
 }

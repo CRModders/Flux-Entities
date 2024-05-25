@@ -13,9 +13,6 @@
   },
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "dev.crmodders.flux.entities.FluxEntitiesMod"
-    ]
   },
   "mixins": [
     "flux.entities.mixins.json"
