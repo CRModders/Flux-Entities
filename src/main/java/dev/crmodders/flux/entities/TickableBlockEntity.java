@@ -2,7 +2,6 @@ package dev.crmodders.flux.entities;
 
 import dev.crmodders.flux.entities.interfaces.ITickable;
 
-@Deprecated
 public class TickableBlockEntity extends FluxBlockEntity implements ITickable {
 
     protected TickableBlockEntity() {

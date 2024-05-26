@@ -4,6 +4,7 @@
     "package": "dev.crmodders.flux.entities.mixins",
     "compatibilityLevel": "JAVA_17",
     "mixins": [
+        "ChunkLoaderMixin",
         "ChunkMixin",
         "InGameMixin",
         "ZoneMixin"

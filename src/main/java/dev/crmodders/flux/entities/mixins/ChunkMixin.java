@@ -1,17 +1,20 @@
 package dev.crmodders.flux.entities.mixins;
 
 import com.badlogic.gdx.graphics.Camera;
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import dev.crmodders.flux.entities.FluxBlockEntity;
+import dev.crmodders.flux.entities.interfaces.INeighborUpdateListener;
 import dev.crmodders.flux.entities.interfaces.IRenderable;
 import dev.crmodders.flux.entities.interfaces.ITickable;
+import dev.crmodders.flux.entities.util.DirectionUtil;
 import finalforeach.cosmicreach.blockentities.BlockEntity;
 import finalforeach.cosmicreach.blockentities.BlockEntityCreator;
 import finalforeach.cosmicreach.blocks.Block;
 import finalforeach.cosmicreach.blocks.BlockState;
+import finalforeach.cosmicreach.constants.Direction;
 import finalforeach.cosmicreach.savelib.blockdata.IBlockData;
 import finalforeach.cosmicreach.util.IPoint3DMap;
 import finalforeach.cosmicreach.world.Chunk;
+import finalforeach.cosmicreach.world.Region;
 import finalforeach.cosmicreach.world.Zone;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -39,6 +42,16 @@ public abstract class ChunkMixin implements ITickable, IRenderable {
     @Shadow public int blockZ;
 
     @Shadow public abstract boolean hasNeighbouringBlockLightChunks(Zone zone);
+
+    @Shadow public Region region;
+
+    @Shadow public int chunkX;
+
+    @Shadow public int chunkY;
+
+    @Shadow public int chunkZ;
+
+    @Shadow public abstract BlockState getBlockState(int localX, int localY, int localZ);
 
     @Override
     public void onTick(float tps) {
@@ -77,6 +90,41 @@ public abstract class ChunkMixin implements ITickable, IRenderable {
     @Inject(method = "setBlockEntity", at= @At("TAIL"))
     private void fireNeighbors(BlockEntity blockEntity, int localX, int localY, int localZ, CallbackInfo ci) {
 
+        BlockState blockState = getBlockState(localX, localY, localZ);
+
+        for(Direction face : Direction.values()) {
+            int neighborX = blockX + localX + face.getXOffset();
+            int neighborY = blockY + localY + face.getYOffset();
+            int neighborZ = blockZ + localZ + face.getZOffset();
+
+            int cx = Math.floorDiv(neighborX, 16);
+            int cy = Math.floorDiv(neighborY, 16);
+            int cz = Math.floorDiv(neighborZ, 16);
+
+            boolean neighborIsInThisChunk = (cx == chunkX && cy == chunkY && cz == chunkZ);
+            Chunk neighbor = null;
+            if(neighborIsInThisChunk) neighbor = (Chunk) (Object) this;
+            else if(region != null && region.zone != null) neighbor = region.zone.getChunkAtBlock(neighborX, neighborY, neighborZ);
+            else System.err.println("Region or Zone is not initialized, problems will occur");
+
+            if(neighbor != null) {
+                int neighborLocalX = neighborX - neighbor.blockX;
+                int neighborLocalY = neighborY - neighbor.blockY;
+                int neighborLocalZ = neighborZ - neighbor.blockZ;
+
+                BlockEntity neighborEntity = neighbor.getBlockEntity(neighborLocalX, neighborLocalY, neighborLocalZ);
+
+                if(blockEntity instanceof INeighborUpdateListener neighborChangeListener) {
+                    BlockState neighborBlockState = neighbor.getBlockState(neighborLocalX, neighborLocalY, neighborLocalZ);
+                    neighborChangeListener.onNeighborUpdate(face, neighborBlockState, neighborEntity);
+                }
+
+                if(neighborEntity instanceof INeighborUpdateListener neighborChangeListener) {
+                    neighborChangeListener.onNeighborUpdate(DirectionUtil.opposite(face), blockState, blockEntity);
+                }
+            }
+
+        }
     }
 
     /**

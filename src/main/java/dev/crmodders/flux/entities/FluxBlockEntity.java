@@ -1,11 +1,9 @@
 package dev.crmodders.flux.entities;
 
 import dev.crmodders.flux.annotations.FluxInternal;
-import dev.crmodders.flux.entities.interfaces.ITickable;
 import finalforeach.cosmicreach.blockentities.BlockEntity;
 import finalforeach.cosmicreach.blocks.BlockPosition;
 import finalforeach.cosmicreach.world.Chunk;
-import finalforeach.cosmicreach.world.Zone;
 
 public class FluxBlockEntity extends BlockEntity {
 

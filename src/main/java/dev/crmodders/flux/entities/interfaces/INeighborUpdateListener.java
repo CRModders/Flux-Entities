@@ -4,8 +4,8 @@ import finalforeach.cosmicreach.blockentities.BlockEntity;
 import finalforeach.cosmicreach.blocks.BlockState;
 import finalforeach.cosmicreach.constants.Direction;
 
-public interface INeighborChangeListener {
+public interface INeighborUpdateListener {
 
-    void onNeighborChange(Direction face, BlockState block, BlockEntity entity);
+    void onNeighborUpdate(Direction face, BlockState block, BlockEntity entity);
 
 }
