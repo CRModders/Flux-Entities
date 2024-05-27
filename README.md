@@ -24,10 +24,10 @@ gameMod "dev.crmodders:flux-entities:{current_version_in_tags}"
 public class MyBlockEntity extends TickableBlockEntity implements IRenderable {
 
     public static void register() {
-        BlockEntityCreator.registerBlockEntityCreator("base:myblock", (block, x, y, z) -> new MyBlockEntity(block.getStringId(), x, y, z));
+        BlockEntityCreator.registerBlockEntityCreator("base:myblock", (blockState, x, y, z) -> new MyBlockEntity(Identifier.fromString(blockState.getBlock().blockEntityId), x, y, z));
     }
 
-    public MyBlockEntity(String id, int x, int y, int z) {
+    public MyBlockEntity(Identifier id, int x, int y, int z) {
         super(id, x, y, z);
     }
 
