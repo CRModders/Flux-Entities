@@ -80,6 +80,20 @@ public abstract class ChunkMixin implements ITickable, IRenderable {
         }
     }
 
+    @Inject(method = "setBlockEntityDirect", at= @At(value = "INVOKE", target = "Lfinalforeach/cosmicreach/blockentities/BlockEntity;onRemove()V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
+    private void destroyBlockEntity2(BlockState blockState, BlockEntity blockEntity, int localX, int localY, int localZ, CallbackInfo ci) {
+        if(blockEntity instanceof FluxBlockEntity fluxBlockEntity) {
+            fluxBlockEntity.position = null;
+        }
+    }
+
+    @Inject(method = "setBlockEntityDirect", at= @At(value = "INVOKE", target = "Lfinalforeach/cosmicreach/blockentities/BlockEntity;onCreate(Lfinalforeach/cosmicreach/blocks/BlockState;)V", shift = At.Shift.BEFORE))
+    private void initializeBlockEntity2(BlockState blockState, BlockEntity blockEntity, int localX, int localY, int localZ, CallbackInfo ci) {
+        if(blockEntity instanceof FluxBlockEntity fluxBlockEntity) {
+            fluxBlockEntity.initialize((Chunk) (Object) this, localX, localY, localZ);
+        }
+    }
+
     @Inject(method = "setBlockEntity", at= @At(value = "INVOKE", target = "Lfinalforeach/cosmicreach/blockentities/BlockEntity;onCreate(Lfinalforeach/cosmicreach/blocks/BlockState;)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
     private void fireNeighbors(BlockState blockState, int localX, int localY, int localZ, CallbackInfoReturnable<BlockEntity> cir, @Local BlockEntity blockEntity) {
         for(Direction face : Direction.values()) {
