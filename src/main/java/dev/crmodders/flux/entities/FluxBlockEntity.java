@@ -1,19 +1,23 @@
 package dev.crmodders.flux.entities;
 
 import dev.crmodders.flux.annotations.FluxInternal;
+import dev.crmodders.flux.tags.Identifier;
 import finalforeach.cosmicreach.blockentities.BlockEntity;
 import finalforeach.cosmicreach.blocks.BlockPosition;
 import finalforeach.cosmicreach.world.Chunk;
 
 public class FluxBlockEntity extends BlockEntity {
 
+    public Identifier blockEntityId;
     public BlockPosition position;
 
-    protected FluxBlockEntity() {
+    public FluxBlockEntity(Identifier id, int globalX, int globalY, int globalZ) {
+        super(globalX, globalY, globalZ);
     }
 
-    public FluxBlockEntity(String id, int globalX, int globalY, int globalZ) {
-        super(id, globalX, globalY, globalZ);
+    @Override
+    public String getBlockEntityId() {
+        return blockEntityId.toString();
     }
 
     @FluxInternal

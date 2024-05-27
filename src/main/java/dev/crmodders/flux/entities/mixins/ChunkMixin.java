@@ -1,6 +1,7 @@
 package dev.crmodders.flux.entities.mixins;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.llamalad7.mixinextras.sugar.Local;
 import dev.crmodders.flux.entities.FluxBlockEntity;
 import dev.crmodders.flux.entities.interfaces.INeighborUpdateListener;
 import dev.crmodders.flux.entities.interfaces.IRenderable;
@@ -22,6 +23,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin implements ITickable, IRenderable {
@@ -29,11 +32,7 @@ public abstract class ChunkMixin implements ITickable, IRenderable {
     @Shadow
     IPoint3DMap<BlockEntity> blockEntities;
 
-    @Shadow public IBlockData<BlockState> blockData;
-
-    @Shadow public abstract void setBlockEntity(BlockEntity blockEntity, int localX, int localY, int localZ);
-
-    @Shadow public transient boolean isSaved;
+    @Shadow public Region region;
 
     @Shadow public int blockX;
 
@@ -41,17 +40,11 @@ public abstract class ChunkMixin implements ITickable, IRenderable {
 
     @Shadow public int blockZ;
 
-    @Shadow public abstract boolean hasNeighbouringBlockLightChunks(Zone zone);
-
-    @Shadow public Region region;
-
     @Shadow public int chunkX;
 
     @Shadow public int chunkY;
 
     @Shadow public int chunkZ;
-
-    @Shadow public abstract BlockState getBlockState(int localX, int localY, int localZ);
 
     @Override
     public void onTick(float tps) {
@@ -73,25 +66,22 @@ public abstract class ChunkMixin implements ITickable, IRenderable {
             });
     }
 
-    @Inject(method = "setBlockEntity", at= @At(value = "INVOKE", target = "Lfinalforeach/cosmicreach/blockentities/BlockEntity;onRemove()V", shift = At.Shift.AFTER))
-    private void destroyBlockEntity(BlockEntity blockEntity, int localX, int localY, int localZ, CallbackInfo ci) {
+    @Inject(method = "setBlockEntity", at= @At(value = "INVOKE", target = "Lfinalforeach/cosmicreach/blockentities/BlockEntity;onRemove()V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
+    private void destroyBlockEntity(BlockState blockState, int localX, int localY, int localZ, CallbackInfoReturnable<BlockEntity> cir, @Local BlockEntity blockEntity) {
         if(blockEntity instanceof FluxBlockEntity fluxBlockEntity) {
             fluxBlockEntity.position = null;
         }
     }
 
-    @Inject(method = "setBlockEntity", at= @At(value = "INVOKE", target = "Lfinalforeach/cosmicreach/blockentities/BlockEntity;onCreate()V", shift = At.Shift.BEFORE))
-    private void initializeBlockEntity(BlockEntity blockEntity, int localX, int localY, int localZ, CallbackInfo ci) {
+    @Inject(method = "setBlockEntity", at= @At(value = "INVOKE", target = "Lfinalforeach/cosmicreach/blockentities/BlockEntity;onCreate(Lfinalforeach/cosmicreach/blocks/BlockState;)V", shift = At.Shift.BEFORE))
+    private void initializeBlockEntity(BlockState blockState, int localX, int localY, int localZ, CallbackInfoReturnable<BlockEntity> cir, @Local BlockEntity blockEntity) {
         if(blockEntity instanceof FluxBlockEntity fluxBlockEntity) {
             fluxBlockEntity.initialize((Chunk) (Object) this, localX, localY, localZ);
         }
     }
 
-    @Inject(method = "setBlockEntity", at= @At("TAIL"))
-    private void fireNeighbors(BlockEntity blockEntity, int localX, int localY, int localZ, CallbackInfo ci) {
-
-        BlockState blockState = getBlockState(localX, localY, localZ);
-
+    @Inject(method = "setBlockEntity", at= @At(value = "INVOKE", target = "Lfinalforeach/cosmicreach/blockentities/BlockEntity;onCreate(Lfinalforeach/cosmicreach/blocks/BlockState;)V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
+    private void fireNeighbors(BlockState blockState, int localX, int localY, int localZ, CallbackInfoReturnable<BlockEntity> cir, @Local BlockEntity blockEntity) {
         for(Direction face : Direction.values()) {
             int neighborX = blockX + localX + face.getXOffset();
             int neighborY = blockY + localY + face.getYOffset();
@@ -126,26 +116,5 @@ public abstract class ChunkMixin implements ITickable, IRenderable {
 
         }
     }
-
-    /**
-     * @author nanobass
-     * @reason replacing a block state should not replace the block entity if the block is the same
-     */
-    @Overwrite
-    public void setBlockState(BlockState newState, int x, int y, int z) {
-        BlockState oldState = blockData.getBlockValue(x, y, z);
-        Block oldBlock = oldState.getBlock();
-        blockData = blockData.setBlockValue(newState, x, y, z);
-        Block newBlock = newState.getBlock();
-        if(oldBlock != newBlock) {
-            if (newBlock.blockEntityId != null) {
-                setBlockEntity(BlockEntityCreator.get(newBlock, blockX + x, blockY + y, blockZ + z), x, y, z);
-            } else if (this.blockEntities != null) {
-                setBlockEntity(null, x, y, z);
-            }
-        }
-        this.isSaved = false;
-    }
-
 
 }
