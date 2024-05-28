@@ -13,6 +13,7 @@ public class FluxBlockEntity extends BlockEntity {
 
     public FluxBlockEntity(Identifier id, int globalX, int globalY, int globalZ) {
         super(globalX, globalY, globalZ);
+        this.blockEntityId = id;
     }
 
     @Override
