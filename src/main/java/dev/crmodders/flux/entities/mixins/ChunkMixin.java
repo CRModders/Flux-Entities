@@ -49,21 +49,25 @@ public abstract class ChunkMixin implements ITickable, IRenderable {
     @Override
     public void onTick(float tps) {
         if(blockEntities != null)
-            blockEntities.forEach(entity -> {
-                if(entity instanceof ITickable tickable) {
-                    tickable.onTick(tps);
-                }
-            });
+            synchronized (blockEntities) {
+                blockEntities.forEach(entity -> {
+                    if(entity instanceof ITickable tickable) {
+                        tickable.onTick(tps);
+                    }
+                });
+            }
     }
 
     @Override
     public void onRender(Camera camera, float dt) {
         if(blockEntities != null)
-            blockEntities.forEach(entity -> {
-                if(entity instanceof IRenderable renderable) {
-                    renderable.onRender(camera, dt);
-                }
-            });
+            synchronized (blockEntities) {
+                blockEntities.forEach(entity -> {
+                    if(entity instanceof IRenderable renderable) {
+                        renderable.onRender(camera, dt);
+                    }
+                });
+            }
     }
 
     @Inject(method = "setBlockEntity", at= @At(value = "INVOKE", target = "Lfinalforeach/cosmicreach/blockentities/BlockEntity;onRemove()V", shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
